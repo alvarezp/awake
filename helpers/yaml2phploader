@@ -1,0 +1,26 @@
+#!/usr/bin/php -f
+<?php
+
+function assert_failed($script, $line, $message, $desc) {
+	print("Assertion failed in " . basename($script) . ":$line: $desc\n");
+	exit(2);
+}
+
+assert_options(ASSERT_CALLBACK, "assert_failed");
+
+if ($argc < 2) {
+	print("usage: $argv[0] varname file url");
+	exit(1);
+}
+
+assert(is_file("src/" . $argv[2]));
+assert(preg_match("/^[a-z][a-z0-9]*$/i", $argv[1]) === 1);
+
+$content = yaml_parse_file("src/" . $argv[2]);
+$content['src'] = $argv[2];
+if (isset($argv[3])) {
+    $content['url'] = $argv[3];
+    $content['location_of_include'] = ".cache/include/" . $content['url'];
+}
+
+print("<?php \$$argv[1] = unserialize(base64_decode('" . base64_encode(serialize($content)) . "')); ?>");

@@ -1,0 +1,18 @@
+<?php
+
+# This script must be called with -d short_open_tag=1
+
+require($argv[4]);
+
+print(yaml_emit($my));
+require($argv[3]);
+
+$location_of_include = $my['location_of_include'];
+
+# Write dependency data.
+$includes = get_included_files();
+$full_path_deps = array_slice($includes, 1);
+$real_dependencies = str_replace(getcwd() . "/", "", $full_path_deps);
+$dependencies_string = implode(" ", $real_dependencies);
+file_put_contents($location_of_include,
+    "${argv[2]}: ${dependencies_string}\n", $flags = FILE_APPEND);
