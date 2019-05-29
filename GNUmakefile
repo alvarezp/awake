@@ -28,8 +28,8 @@ EXISTING_FILES_PARENTS := $(dir $(EXISTING_FILES))
 EXISTING_FILES := $(filter-out $(EXISTING_FILES_PARENTS:%/=%),$(EXISTING_FILES))
 DANGLING_TARGETS := $(filter-out $(ALL_TARGETS),$(EXISTING_FILES))
 
-POSTS := $(wildcard src/_posts/*)
-PAGES := $(filter %.md %.md.php %.rst %.rst.php,$(ALL_SOURCES))
+POSTS := $(wildcard src/posts/*)
+PAGES := $(filter %.md %.md.php %.rst %.rst.php,$(filter-out src/posts/% src/posts,$(ALL_SOURCES)))
 
 
 GLOBAL_METADATA := .cache/config.php .cache/site.php .cache/posts.php .cache/pages.php
