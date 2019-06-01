@@ -153,8 +153,8 @@ build/%: src/%
 .PHONY: clean
 clean:
 	@echo \#\# Cleaning ...
-	@rm -fr .cache
-	@rm -fr build
+	rm -fr .cache
+	rm -fr build
 	
 .PHONY: tidy
 tidy:
