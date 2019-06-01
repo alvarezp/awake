@@ -36,8 +36,8 @@ GLOBAL_METADATA := .cache/config.php .cache/site.php .cache/posts.php .cache/pag
 
 -include $(ALL_TARGETS:build/%=.cache/include/%)
 
-.PHONY: server
-server:
+.PHONY: serve server
+serve server:
 	@php -S localhost:8000 -t build/
 
 .PHONY: all
