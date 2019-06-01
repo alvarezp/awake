@@ -158,4 +158,4 @@ clean:
 .PHONY: tidy
 tidy:
 	@echo \#\# Tidying up ...
-	@rm -fr $(DANGLING_TARGETS)
+	rm -fr $(DANGLING_TARGETS)
