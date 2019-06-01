@@ -1,0 +1,110 @@
+#!/usr/bin/php -f
+<?php
+
+function assert_failed($script, $line, $message, $desc) {
+	print("Assertion failed in " . basename($script) . ":$line: $desc\n");
+	exit(2);
+}
+
+assert_options(ASSERT_CALLBACK, "assert_failed");
+
+if ($argc < 3) {
+	print("usage: $argv[0] stem target deps...\n");
+	exit(1);
+}
+
+assert(is_file($argv[3]));
+
+# PHASE 0: READ METADATA
+$my = yaml_parse_file($argv[3]);
+$my['src'] = $argv[3];
+if (isset($argv[3]))
+    $my['url'] = $argv[1] . ".html";
+
+# PHASE 0.5: VALIDATE METADATA
+$layout = $my["layout"] ?? "default";
+$layout_file="src/_layouts/" . $layout . ".php.pdt";
+assert(is_file($layout_file));
+
+$letterhead = $my["letterhead"] ?? "default";
+$letterhead_file="src/_letterheads/" . $letterhead . ".php.pdt";
+assert(is_file($letterhead_file));
+
+# PHASE 1: PREPROCESS SOURCE (if the source has a .php extension)
+if (strtolower(substr($argv[3], -4, 4)) == ".php") {
+    ob_start();
+    require($argv[3]);
+    $preprocessed=ob_get_clean();
+} else {
+    $preprocessed=file_get_contents($argv[3]);
+}
+
+# PHASE 2: APPLY TEMPLATE
+$cmd = "pandoc -s --template=$layout_file";
+
+$descriptorspec = array(
+    0 => array("pipe", "r"),  // stdin is a pipe that the child will read from
+    1 => array("pipe", "w")  // stdout is a pipe that the child will write to
+);
+
+$process = proc_open($cmd, $descriptorspec, $pipes);
+
+if (is_resource($process)) {
+    fwrite($pipes[0], yaml_emit($my));
+    fwrite($pipes[0], $preprocessed);
+    fclose($pipes[0]);
+
+    $laidout = stream_get_contents($pipes[1]);
+    fclose($pipes[1]);
+
+    // It is important that you close any pipes before calling
+    // proc_close in order to avoid a deadlock
+    $return_value = proc_close($process);
+    if ($return_value > 0)
+	    exit($return_value);
+}
+
+# PHASE 3: HYDRATE AND POLISH LAIDOUT
+eval(" ob_start(); ?>" . $laidout . "<? \$evaled = ob_get_clean(); ");
+$polished=yaml_emit($my) . $evaled;
+
+# PHASE 4: APPLY LETTERHEAD
+$cmd = "pandoc -s --template=$letterhead_file";
+
+$descriptorspec = array(
+   0 => array("pipe", "r"),  // stdin is a pipe that the child will read from
+   1 => array("pipe", "w")  // stdout is a pipe that the child will write to
+);
+
+$process = proc_open($cmd, $descriptorspec, $pipes);
+
+if (is_resource($process)) {
+    fwrite($pipes[0], yaml_emit($my));
+    fwrite($pipes[0], $polished);
+    fclose($pipes[0]);
+
+    $letter = stream_get_contents($pipes[1]);
+    fclose($pipes[1]);
+
+    // It is important that you close any pipes before calling
+    // proc_close in order to avoid a deadlock
+    $return_value = proc_close($process);
+    if ($return_value > 0)
+	    exit($return_value);
+}
+
+# PHASE 5: POLISH LETTER
+eval(" ?>" . $letter . "<? ");
+
+$includes = get_included_files();
+$full_path_deps = array_slice($includes, 2);
+$location_of_include = ".cache/include/" . $my['url'];
+$real_dependencies = str_replace(getcwd() . "/", "", $full_path_deps);
+$real_dependencies[] = $layout_file;
+$real_dependencies[] = $letterhead_file;
+$dependencies_string = implode(" ", $real_dependencies);
+$include_dir = dirname($location_of_include);
+if (!is_dir($include_dir))
+    mkdir($include_dir, 0777, $recursive = true);
+file_put_contents($location_of_include,
+    "${argv[2]}: ${dependencies_string}\n", $flags = FILE_APPEND);

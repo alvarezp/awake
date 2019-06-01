@@ -14,7 +14,6 @@ ALL_SOURCES := $(filter-out $(ALL_PARENTS:%/=%),$(ALL_SOURCES))
 
 TARGETS_FROM_MD_PHP := $(patsubst src/%.md.php,build/%.html,$(filter src/%.md.php,$(ALL_SOURCES)))
 TARGETS_FROM_MD := $(patsubst src/%.md,build/%.html,$(filter src/%.md,$(ALL_SOURCES)))
-PROCESSED_TARGETS := $(TARGETS_FROM_MD_PHP) $(TARGETS_FROM_MD)
 
 ALL_TARGETS := $(patsubst src/%,build/%,$(ALL_SOURCES))
 ALL_TARGETS := $(patsubst %.md.php,%.html,$(ALL_TARGETS))
@@ -59,55 +58,15 @@ all: .cache $(GLOBAL_METADATA) $(ALL_TARGETS) ;
 	$(info ## Preparing $@ ...)
 	@$(HELPERDIR)/yaml2phparrayloader pages $^ > $@
 
-.cache/my/%.html: src/%.md.php
-	$(info ## Preparing $@ ...)
-	@test -d $(@D) || mkdir -p $(@D)
-	@$(HELPERDIR)/yaml2phploader my $*.md.php $*.html > "$@"
-
-.cache/my/%.html: src/%.md
-	$(info ## Preparing $@ ...)
-	@test -d $(@D) || mkdir -p $(@D)
-	@$(HELPERDIR)/yaml2phploader my $*.md $*.html > "$@"
-
-## For .MD.PHP
-# Stage 1: preprocess
-$(TARGETS_FROM_MD_PHP:build/%.html=.cache/preprocessed-sources/%.md): .cache/preprocessed-sources/%.md: src/%.md.php .cache/my/%.html
-	$(info ## Preparing $@ ...)
-	@test -d $(@D) || mkdir -p $(@D)
-	@rm -f .cache/include/$*.html
-	@php -d short_open_tag=1 -f $(HELPERDIR)/preprocess-source $* $@ $^ > "$@"
-
-# Stage 2: Apply layout
-$(TARGETS_FROM_MD_PHP:build/%.html=.cache/applied-laidouts/%.html.php): .cache/applied-laidouts/%.html.php: .cache/preprocessed-sources/%.md .cache/my/%.html
-	$(info ## Preparing $@ ...)
-	@test -d $(@D) || mkdir -p $(@D)
-	@$(HELPERDIR)/apply-layout $* $@ $^ > "$@"
-
 ## For .MD: skip directly to Stage 2
 # Stage 2: Apply layout
-$(TARGETS_FROM_MD:build/%.html=.cache/applied-laidouts/%.html.php): .cache/applied-laidouts/%.html.php: src/%.md .cache/my/%.html
-	$(info ## Preparing $@ ...)
-	@test -d $(@D) || mkdir -p $(@D)
-	@$(HELPERDIR)/apply-layout $* $@ $^ > "$@"
+$(TARGETS_FROM_MD): build/%.html: src/%.md
+	$(info ## Generating $@ ...)
+	@test -d $(@D) || mkdir -p $(@D) && php -d short_open_tag=1 -f $(HELPERDIR)/md2html $* $@ $^ > "$@"
 
-# GENERIC for the rest of the steps
-# Stage 3: Postprocess laidout
-$(PROCESSED_TARGETS:build/%.html=.cache/polished-laidouts/%.md): .cache/polished-laidouts/%.md: .cache/applied-laidouts/%.html.php .cache/my/%.html
-	$(info ## Preparing $@ ...)
-	@test -d $(@D) || mkdir -p $(@D)
-	@php -d short_open_tag=1 -f $(HELPERDIR)/polish-laidout $* $@ $^ > "$@"
-
-# Stage 4: Apply letterhead
-$(PROCESSED_TARGETS:build/%.html=.cache/applied-letterhead/%.php): .cache/applied-letterhead/%.php: .cache/polished-laidouts/%.md .cache/my/%.html
-	$(info ## Preparing $@ ...)
-	@test -d $(@D) || mkdir -p $(@D)
-	@$(HELPERDIR)/apply-letterhead $* $@ $^ > "$@"
-
-# Stage 5: Polish letter
-$(PROCESSED_TARGETS): build/%.html: .cache/applied-letterhead/%.php .cache/my/%.html
-	$(info ## Preparing $@ ...)
-	@test -d $(@D) || mkdir -p $(@D)
-	@php -d short_open_tag=1 -f $(HELPERDIR)/polish-letter $* $@ $^ > "$@"
+$(TARGETS_FROM_MD_PHP): build/%.html: src/%.md.php
+	$(info ## Generating $@ ...)
+	@test -d $(@D) || mkdir -p $(@D) && php -d short_open_tag=1 -f $(HELPERDIR)/md2html $* $@ $^ > "$@"
 
 build/%: src/%
 	$(info ## Copying $@ ...)
