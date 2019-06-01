@@ -147,8 +147,7 @@ $(PROCESSED_TARGETS): build/%.html: .cache/applied-letterhead/%.php .cache/my/%.
 
 build/%: src/%
 	$(info ## Copying $@ ...)
-	@test -d $(@D) || mkdir -p $(@D)
-	@cp $< $@
+	@test -d $(@D) || mkdir -p $(@D) && cp $< $@
 
 .PHONY: clean
 clean:
