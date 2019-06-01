@@ -1,5 +1,6 @@
-.SUFFIXES:
+HELPERDIR=./helpers
 
+.SUFFIXES:
 .DELETE_ON_ERROR:
 
 .DEFAULT_GOAL := all
@@ -44,29 +45,29 @@ all: .cache $(GLOBAL_METADATA) $(ALL_TARGETS) ;
 
 .cache/config.php: src/_config.yml
 	$(info ## Preparing $@ ...)
-	@helpers/yaml2phploader config _config.yml > $@
+	@$(HELPERDIR)/yaml2phploader config _config.yml > $@
 
 .cache/site.php: src/_site.yml
 	$(info ## Preparing $@ ...)
-	@helpers/yaml2phploader site _site.yml > $@
+	@$(HELPERDIR)/yaml2phploader site _site.yml > $@
 
 .cache/posts.php: $(POSTS)
 	$(info ## Preparing $@ ...)
-	@helpers/yaml2phparrayloader posts $^ > $@
+	@$(HELPERDIR)/yaml2phparrayloader posts $^ > $@
 
 .cache/pages.php: $(PAGES)
 	$(info ## Preparing $@ ...)
-	@helpers/yaml2phparrayloader pages $^ > $@
+	@$(HELPERDIR)/yaml2phparrayloader pages $^ > $@
 
 .cache/my/%.html: src/%.md.php
 	$(info ## Preparing $@ ...)
 	@test -d $(@D) || mkdir -p $(@D)
-	@helpers/yaml2phploader my $*.md.php $*.html > "$@"
+	@$(HELPERDIR)/yaml2phploader my $*.md.php $*.html > "$@"
 
 .cache/my/%.html: src/%.md
 	$(info ## Preparing $@ ...)
 	@test -d $(@D) || mkdir -p $(@D)
-	@helpers/yaml2phploader my $*.md $*.html > "$@"
+	@$(HELPERDIR)/yaml2phploader my $*.md $*.html > "$@"
 
 ## For .MD.PHP
 # Stage 1: preprocess
@@ -74,39 +75,39 @@ $(TARGETS_FROM_MD_PHP:build/%.html=.cache/preprocessed-sources/%.md): .cache/pre
 	$(info ## Preparing $@ ...)
 	@test -d $(@D) || mkdir -p $(@D)
 	@rm -f .cache/include/$*.html
-	@php -d short_open_tag=1 -f helpers/preprocess-source $* $@ $^ > "$@"
+	@php -d short_open_tag=1 -f $(HELPERDIR)/preprocess-source $* $@ $^ > "$@"
 
 # Stage 2: Apply layout
 $(TARGETS_FROM_MD_PHP:build/%.html=.cache/applied-laidouts/%.html.php): .cache/applied-laidouts/%.html.php: .cache/preprocessed-sources/%.md .cache/my/%.html
 	$(info ## Preparing $@ ...)
 	@test -d $(@D) || mkdir -p $(@D)
-	@helpers/apply-layout $* $@ $^ > "$@"
+	@$(HELPERDIR)/apply-layout $* $@ $^ > "$@"
 
 ## For .MD: skip directly to Stage 2
 # Stage 2: Apply layout
 $(TARGETS_FROM_MD:build/%.html=.cache/applied-laidouts/%.html.php): .cache/applied-laidouts/%.html.php: src/%.md .cache/my/%.html
 	$(info ## Preparing $@ ...)
 	@test -d $(@D) || mkdir -p $(@D)
-	@helpers/apply-layout $* $@ $^ > "$@"
+	@$(HELPERDIR)/apply-layout $* $@ $^ > "$@"
 
 # GENERIC for the rest of the steps
 # Stage 3: Postprocess laidout
 $(PROCESSED_TARGETS:build/%.html=.cache/polished-laidouts/%.md): .cache/polished-laidouts/%.md: .cache/applied-laidouts/%.html.php .cache/my/%.html
 	$(info ## Preparing $@ ...)
 	@test -d $(@D) || mkdir -p $(@D)
-	@php -d short_open_tag=1 -f helpers/polish-laidout $* $@ $^ > "$@"
+	@php -d short_open_tag=1 -f $(HELPERDIR)/polish-laidout $* $@ $^ > "$@"
 
 # Stage 4: Apply letterhead
 $(PROCESSED_TARGETS:build/%.html=.cache/applied-letterhead/%.php): .cache/applied-letterhead/%.php: .cache/polished-laidouts/%.md .cache/my/%.html
 	$(info ## Preparing $@ ...)
 	@test -d $(@D) || mkdir -p $(@D)
-	@helpers/apply-letterhead $* $@ $^ > "$@"
+	@$(HELPERDIR)/apply-letterhead $* $@ $^ > "$@"
 
 # Stage 5: Polish letter
 $(PROCESSED_TARGETS): build/%.html: .cache/applied-letterhead/%.php .cache/my/%.html
 	$(info ## Preparing $@ ...)
 	@test -d $(@D) || mkdir -p $(@D)
-	@php -d short_open_tag=1 -f helpers/polish-letter $* $@ $^ > "$@"
+	@php -d short_open_tag=1 -f $(HELPERDIR)/polish-letter $* $@ $^ > "$@"
 
 build/%: src/%
 	$(info ## Copying $@ ...)
