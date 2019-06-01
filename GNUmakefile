@@ -13,15 +13,11 @@ ALL_SOURCES := $(filter-out $(ALL_PARENTS:%/=%),$(ALL_SOURCES))
 
 TARGETS_FROM_MD_PHP := $(patsubst src/%.md.php,build/%.html,$(filter src/%.md.php,$(ALL_SOURCES)))
 TARGETS_FROM_MD := $(patsubst src/%.md,build/%.html,$(filter src/%.md,$(ALL_SOURCES)))
-TARGETS_FROM_RST_PHP := $(patsubst src/%.rst.php,build/%.html,$(filter src/%.rst.php,$(ALL_SOURCES)))
-TARGETS_FROM_RST := $(patsubst src/%.rst,build/%.html,$(filter src/%.rst,$(ALL_SOURCES)))
-PROCESSED_TARGETS := $(TARGETS_FROM_MD_PHP) $(TARGETS_FROM_MD) $(TARGETS_FROM_RST_PHP) $(TARGETS_FROM_RST)
+PROCESSED_TARGETS := $(TARGETS_FROM_MD_PHP) $(TARGETS_FROM_MD)
 
 ALL_TARGETS := $(patsubst src/%,build/%,$(ALL_SOURCES))
 ALL_TARGETS := $(patsubst %.md.php,%.html,$(ALL_TARGETS))
 ALL_TARGETS := $(patsubst %.md,%.html,$(ALL_TARGETS))
-ALL_TARGETS := $(patsubst %.rst.php,%.html,$(ALL_TARGETS))
-ALL_TARGETS := $(patsubst %.rst,%.html,$(ALL_TARGETS))
 
 EXISTING_FILES := $(call rwildcard,build/,*)
 EXISTING_FILES_PARENTS := $(dir $(EXISTING_FILES))
@@ -29,7 +25,7 @@ EXISTING_FILES := $(filter-out $(EXISTING_FILES_PARENTS:%/=%),$(EXISTING_FILES))
 DANGLING_TARGETS := $(filter-out $(ALL_TARGETS),$(EXISTING_FILES))
 
 POSTS := $(wildcard src/_posts/*) $(wildcard src/posts/*)
-PAGES := $(filter %.md %.md.php %.rst %.rst.php,$(filter-out src/_posts src/posts/% $(POSTS),$(ALL_SOURCES)))
+PAGES := $(filter %.md %.md.php,$(filter-out src/_posts src/posts/% $(POSTS),$(ALL_SOURCES)))
 
 
 GLOBAL_METADATA := .cache/config.php .cache/site.php .cache/posts.php .cache/pages.php
@@ -67,20 +63,10 @@ all: .cache $(GLOBAL_METADATA) $(ALL_TARGETS) ;
 	@test -d $(@D) || mkdir -p $(@D)
 	@helpers/yaml2phploader my $*.md.php $*.html > "$@"
 
-.cache/my/%.html: src/%.rst.php
-	$(info ## Preparing $@ ...)
-	@test -d $(@D) || mkdir -p $(@D)
-	@helpers/yaml2phploader my $*.rst.php $*.html > "$@"
-
 .cache/my/%.html: src/%.md
 	$(info ## Preparing $@ ...)
 	@test -d $(@D) || mkdir -p $(@D)
 	@helpers/yaml2phploader my $*.md $*.html > "$@"
-
-.cache/my/%.html: src/%.rst
-	$(info ## Preparing $@ ...)
-	@test -d $(@D) || mkdir -p $(@D)
-	@helpers/yaml2phploader my $*.rst $*.html > "$@"
 
 ## For .MD.PHP
 # Stage 1: preprocess
@@ -99,29 +85,6 @@ $(TARGETS_FROM_MD_PHP:build/%.html=.cache/applied-laidouts/%.html.php): .cache/a
 ## For .MD: skip directly to Stage 2
 # Stage 2: Apply layout
 $(TARGETS_FROM_MD:build/%.html=.cache/applied-laidouts/%.html.php): .cache/applied-laidouts/%.html.php: src/%.md .cache/my/%.html
-	$(info ## Preparing $@ ...)
-	@test -d $(@D) || mkdir -p $(@D)
-	@helpers/apply-layout $* $@ $^ > "$@"
-
-## For .RST.PHP
-# Stage 1: preprocess .rst.php
-$(TARGETS_FROM_RST_PHP:build/%.html=.cache/preprocessed-sources/%.rst): .cache/preprocessed-sources/%.rst: src/%.rst.php .cache/my/%.html
-	$(info ## Preparing $@ ...)
-	@test -d $(@D) || mkdir -p $(@D)
-	@rm -f .cache/include/$*.html
-	@php -d short_open_tag=1 -f helpers/preprocess-source $* $@ $^ > "$@"
-
-
-## For .RST
-# Stage 1: preprocess
-$(TARGETS_FROM_RST:build/%.html=.cache/preprocessed-sources/%.rst): .cache/preprocessed-sources/%.rst: src/%.rst .cache/my/%.html
-	$(info ## Preparing $@ ...)
-	@test -d $(@D) || mkdir -p $(@D)
-	@rm -f .cache/include/$*.html
-	@cp $< $@
-
-# Stage 2: Apply layout
-$(TARGETS_FROM_RST:build/%.html=.cache/applied-laidouts/%.html.php) $(TARGETS_FROM_RST_PHP:build/%.html=.cache/applied-laidouts/%.html.php): .cache/applied-laidouts/%.html.php: .cache/preprocessed-sources/%.rst .cache/my/%.html
 	$(info ## Preparing $@ ...)
 	@test -d $(@D) || mkdir -p $(@D)
 	@helpers/apply-layout $* $@ $^ > "$@"
