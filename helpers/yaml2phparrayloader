@@ -21,6 +21,6 @@ foreach (array_slice($argv, 2) as $f) {
     $content[$f] = yaml_parse_file($f);
     if (substr($f,0,1) == '1' || substr($f,0,1) == '2')
         $content[$f]["filename-date"] = substr($f,0,10);
-    $content[$f]["url"] = preg_replace("/\.md(\.php)?$/", ".html", preg_replace("/^src/", "", $f));
+    $content[$f]["url"] = preg_replace("/\.md(\.php)?$|\.rst(\.php)?$|\.html(\.php)?$/", ".html", preg_replace("/^src/", "", $f));
 }
 print("<?php \$$argv[1] = unserialize(base64_decode('" . base64_encode(serialize($content)) . "')); ?>");
