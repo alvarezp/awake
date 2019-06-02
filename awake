@@ -84,3 +84,16 @@ clean:
 tidy:
 	@echo \#\# Tidying up ...
 	rm -fr $(DANGLING_TARGETS)
+
+.PHONY: help
+help:
+	@echo "Usage: awake [targets]"
+	@echo
+	@echo "Known targets:"
+	@echo "   all          - build the whole site"
+	@echo "   build/<file> - build that file only"
+	@echo "   clean        - remove build and .cache"
+	@echo "   tidy         - remove unrecognized build files"
+	@echo "   help         - this message"
+	@echo "   serve        - serve the site over port 8000"
+	@echo
