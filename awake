@@ -115,7 +115,7 @@ help:
 	@echo "Usage: awake [targets]"
 	@echo
 	@echo "Known targets:"
-	@echo "   all          - build the whole site"
+	@echo "   all          - build the whole site [default]"
 	@echo "   build/<file> - build that file only"
 	@echo "   clean        - remove build and .cache"
 	@echo "   tidy         - remove unrecognized build files"
