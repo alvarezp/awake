@@ -45,6 +45,8 @@ GLOBAL_METADATA := .cache/config.php .cache/site.php .cache/posts.php .cache/pag
 
 -include $(ALL_TARGETS:build/%=.cache/include/%)
 
+# For "serve" we should use something asynchronous like inotify
+# instead of a polling-based mechanisms like watch awake.
 .PHONY: serve server
 serve server: all
 	@php -S localhost:8000 -t build/ 2>&1 > /dev/null & P=$!; \
