@@ -1,3 +1,5 @@
+#!/usr/bin/make -f
+
 HELPERDIR=./helpers
 
 .SUFFIXES:
