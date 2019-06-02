@@ -193,4 +193,4 @@ $include_dir = dirname($location_of_include);
 if (!is_dir($include_dir))
     mkdir($include_dir, 0777, $recursive = true);
 file_put_contents($location_of_include,
-    "${argv[2]}: ${dependencies_string}\n", $flags = FILE_APPEND);
+    "${argv[2]}: ${dependencies_string}\n");
