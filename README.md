@@ -10,7 +10,8 @@ The source directory is src and awake copies everything into build, except:
 
 * If it starts with an underscore, it's not copied.
 
-* If it has an .md or .md.php suffix, it's processed with PHP and Pandoc.
+* If it has an .md\[.php] or .rst\[.php] or .html.php suffix, it's
+  processed with PHP and Pandoc.
 
 Awake uses a 3-layer composition concept: content, layout and letterhead.
 The content is laid out using the specified layout and then the letterhead
