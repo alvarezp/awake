@@ -25,6 +25,12 @@ ALL_TARGETS := $(patsubst %.md,%.html,$(ALL_TARGETS))
 TARGETS_FROM_HTML_PHP := $(patsubst src/%.html.php,build/%.html,$(filter src/%.html.php,$(ALL_SOURCES)))
 ALL_TARGETS := $(patsubst %.html.php,%.html,$(ALL_TARGETS))
 
+TARGETS_FROM_RST_PHP := $(patsubst src/%.rst.php,build/%.html,$(filter src/%.rst.php,$(ALL_SOURCES)))
+ALL_TARGETS := $(patsubst %.rst.php,%.html,$(ALL_TARGETS))
+
+TARGETS_FROM_RST := $(patsubst src/%.rst,build/%.html,$(filter src/%.rst,$(ALL_SOURCES)))
+ALL_TARGETS := $(patsubst %.rst,%.html,$(ALL_TARGETS))
+
 EXISTING_FILES := $(call rwildcard,build/,*)
 EXISTING_FILES_PARENTS := $(dir $(EXISTING_FILES))
 EXISTING_FILES := $(filter-out $(EXISTING_FILES_PARENTS:%/=%),$(EXISTING_FILES))
@@ -33,7 +39,7 @@ DANGLING_TARGETS := $(filter-out $(ALL_TARGETS),$(EXISTING_FILES))
 POSTS := $(wildcard src/_posts/*) $(wildcard src/posts/*)
 
 NOT_POSTS := $(filter-out src/_posts src/posts/% $(POSTS),$(ALL_SOURCES))
-PAGES := $(filter %.md %.md.php %.html.php,$(NOT_POSTS))
+PAGES := $(filter %.md %.md.php %.html.php %.rst.php %.rst,$(NOT_POSTS))
 
 GLOBAL_METADATA := .cache/config.php .cache/site.php .cache/posts.php .cache/pages.php
 
@@ -74,6 +80,14 @@ $(TARGETS_FROM_MD): build/%.html: src/%.md
 $(TARGETS_FROM_MD_PHP): build/%.html: src/%.md.php
 	$(info ## Generating $@ ...)
 	@test -d $(@D) || mkdir -p $(@D) && php -d short_open_tag=1 -f $(HELPERDIR)/md2html $* $@ $^ > "$@"
+
+$(TARGETS_FROM_RST): build/%.html: src/%.rst
+	$(info ## Generating $@ ...)
+	@test -d $(@D) || mkdir -p $(@D) && php -d short_open_tag=1 -f $(HELPERDIR)/rst2html $* $@ $^ > "$@"
+
+$(TARGETS_FROM_RST_PHP): build/%.html: src/%.rst.php
+	$(info ## Generating $@ ...)
+	@test -d $(@D) || mkdir -p $(@D) && php -d short_open_tag=1 -f $(HELPERDIR)/rst2html $* $@ $^ > "$@"
 
 $(TARGETS_FROM_HTML_PHP): build/%.html: src/%.html.php
 	$(info ## Generating $@ ...)
