@@ -64,8 +64,6 @@ all: .cache $(GLOBAL_METADATA) $(ALL_TARGETS) ;
 	$(info ## Preparing $@ ...)
 	@$(HELPERDIR)/yaml2phparrayloader pages $^ > $@
 
-## For .MD: skip directly to Stage 2
-# Stage 2: Apply layout
 $(TARGETS_FROM_MD): build/%.html: src/%.md
 	$(info ## Generating $@ ...)
 	@test -d $(@D) || mkdir -p $(@D) && php -d short_open_tag=1 -f $(HELPERDIR)/md2html $* $@ $^ > "$@"
