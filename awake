@@ -1,6 +1,7 @@
 #!/usr/bin/make -f
 
 HELPERDIR=./helpers
+AWAKE=awake
 
 .SUFFIXES:
 .DELETE_ON_ERROR:
@@ -36,7 +37,9 @@ GLOBAL_METADATA := .cache/config.php .cache/site.php .cache/posts.php .cache/pag
 
 .PHONY: serve server
 serve server: all
-	@php -S localhost:8000 -t build/
+	@php -S localhost:8000 -t build/ 2>&1 > /dev/null & P=$!; \
+	    watch -n 0.5 $(AWAKE) all; \
+	    kill $$P
 
 .PHONY: all
 all: .cache $(GLOBAL_METADATA) $(ALL_TARGETS) ;
