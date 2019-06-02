@@ -14,12 +14,12 @@ rwildcard = $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2) $(filter $(subs
 ALL_SOURCES := $(filter-out src/_%,$(call rwildcard,src/,*))
 ALL_PARENTS := $(dir $(ALL_SOURCES))
 ALL_SOURCES := $(filter-out $(ALL_PARENTS:%/=%),$(ALL_SOURCES))
+ALL_TARGETS := $(patsubst src/%,build/%,$(ALL_SOURCES))
 
 TARGETS_FROM_MD_PHP := $(patsubst src/%.md.php,build/%.html,$(filter src/%.md.php,$(ALL_SOURCES)))
-TARGETS_FROM_MD := $(patsubst src/%.md,build/%.html,$(filter src/%.md,$(ALL_SOURCES)))
-
-ALL_TARGETS := $(patsubst src/%,build/%,$(ALL_SOURCES))
 ALL_TARGETS := $(patsubst %.md.php,%.html,$(ALL_TARGETS))
+
+TARGETS_FROM_MD := $(patsubst src/%.md,build/%.html,$(filter src/%.md,$(ALL_SOURCES)))
 ALL_TARGETS := $(patsubst %.md,%.html,$(ALL_TARGETS))
 
 EXISTING_FILES := $(call rwildcard,build/,*)
@@ -28,8 +28,9 @@ EXISTING_FILES := $(filter-out $(EXISTING_FILES_PARENTS:%/=%),$(EXISTING_FILES))
 DANGLING_TARGETS := $(filter-out $(ALL_TARGETS),$(EXISTING_FILES))
 
 POSTS := $(wildcard src/_posts/*) $(wildcard src/posts/*)
-PAGES := $(filter %.md %.md.php,$(filter-out src/_posts src/posts/% $(POSTS),$(ALL_SOURCES)))
 
+NOT_POSTS := $(filter-out src/_posts src/posts/% $(POSTS),$(ALL_SOURCES))
+PAGES := $(filter %.md %.md.php,$(NOT_POSTS))
 
 GLOBAL_METADATA := .cache/config.php .cache/site.php .cache/posts.php .cache/pages.php
 
