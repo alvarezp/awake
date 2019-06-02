@@ -6,6 +6,8 @@ Awake is another Web static site generator based on GNU Make.
 Usage
 -----
 
+To run under Debian it needs the php-cli, php-yaml, pandoc and make packages.
+
 The source directory is src and awake copies everything into build, except:
 
 * If it starts with an underscore, it's not copied.
