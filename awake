@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 
 HELPERDIR=./helpers
-AWAKE=awake
+AWAKE=$(abspath $(lastword $(MAKEFILE_LIST)))
 
 .SUFFIXES:
 .DELETE_ON_ERROR:
