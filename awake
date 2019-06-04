@@ -1,6 +1,8 @@
 #!/usr/bin/make -f
 
-HELPERDIR=./helpers
+-include /etc/awakeconf.mk
+
+HELPERDIR ?= ./helpers
 AWAKE=$(abspath $(lastword $(MAKEFILE_LIST)))
 
 .SUFFIXES:
